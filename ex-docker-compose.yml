@@ -1,0 +1,111 @@
+version: '3'
+
+services:
+  dbms-api:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 1qaz2wsx
+    volumes:
+      - /data/docker/sql:/docker-entrypoint-initdb.d
+      - /data/docker/conf/mysql:/etc/mysql/mariadb.conf.d
+    networks:
+      - app-network
+    ports:
+      - 3306:3306
+
+  php-fpm-gp:
+    image: php:fpm-2023
+    volumes:
+      - /data/be/gp:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - dbms-api
+    extra_hosts:
+      - gpdb:192.168.99.45
+      - gpsrv:192.168.99.27
+    command: ["bash", "/var/www/html/config.sh","docker-php-entrypoint","php-fpm"]
+
+  php-fpm-gplar:
+    image: php:fpm-2023
+    volumes:
+      - /data/be/gplar:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - dbms-api
+    extra_hosts:
+      - gpdb:192.168.99.45
+      - gpsrv:192.168.99.27
+
+  php-fpm-api:
+    image: php:fpm-2023
+    volumes:
+      - /data/be/api:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - dbms-api
+    extra_hosts:
+      - gpsrv:192.168.99.27
+      - appserver:192.168.99.27
+    command: ["bash","/var/www/html/config.sh","docker-php-entrypoint","php-fpm"]
+
+  php-fpm-apilar:
+    image: php:8.2.15-fpm
+    volumes:
+      - /data/be/apilar:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - dbms-api
+    extra_hosts:
+      - gpsrv:192.168.99.27
+      - appserver:192.168.99.27
+    command: ["bash","/var/www/html/config_laravel.sh","docker-php-entrypoint","php-fpm"]
+
+  golang-gofinrpt:
+    image: golang:1.14
+    working_dir: /var/www/html
+    volumes:
+      - /data/gofinrpt:/var/www/html
+    ports:
+      - 8090:8090
+    networks:
+      - app-network
+    entrypoint:
+      - ./main
+
+  product-nginx:
+    image: nginx:1.15.12-alpine
+    depends_on:
+      - php-fpm-gp
+      - php-fpm-gplar
+      - php-fpm-api
+      - php-fpm-apilar
+    ports:
+      - 3316:3316
+      - 3326:3326
+      - 8082:8082
+      - 8083:8083
+      - 7000:7000
+      - 4000:4000
+      - 5000:5000
+    volumes:
+      - /data/docker/conf/nginx:/etc/nginx/conf.d
+      - /data/fe/gp:/var/www/html/gp
+      - /data/fe/gplar:/var/www/html/gplar
+      - /data/fe/api:/var/www/html/api
+      - /data/fe/api_files:/var/www/html/api_files
+      - /data/fe/apilar:/var/www/html/apilar
+
+    networks:
+      - app-network
+
+networks:
+  app-network:
+        driver: bridge
+        ipam:
+            config:
+                # 子网络
+                - subnet: 10.0.0.0/16
