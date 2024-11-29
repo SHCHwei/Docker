@@ -66,6 +66,7 @@ EX: docker build -t <image-name> <Dockerfile路徑> --no-cache
 * ports => 對外PORT號(ex: "8081:81")
 * environment => 環境變數，這個需參照各image的網路上文件說明(ex: 如Database的root帳密之類的)
 * networks => 可以設定一個網路給某個容器，但是容器建立時候通常也會建立一個簡單的網路使用
+* entrypoint => 指定 docker 啟動時的預設指令
 
 ### *Docker Compose 指令*
 
