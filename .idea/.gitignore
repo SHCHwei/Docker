@@ -8,3 +8,6 @@
 /dataSources.local.xml
 
 /.idea/
+
+/database/source/mariadb/
+/database/source/mongo/

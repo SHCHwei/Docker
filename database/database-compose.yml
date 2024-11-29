@@ -1,12 +1,13 @@
 version: "3.9"
 
 services:
-  mysql:
+  mariadb:
     image: mariadb:latest
-    container_name: app-mysql
+    container_name: app-mariadb
+    restart: always
     environment:
         MYSQL_ROOT_PASSWORD: admin01
-        MYSQL_DATABASE: my_data
+        MYSQL_DATABASE: Laravel
     volumes:
       - /source/mariadb:/var/lib/mysql
     ports:
@@ -15,14 +16,13 @@ services:
   phpmyadmin:
     image: phpmyadmin
     container_name: app-phpmyadmin
-    restart: always
     ports:
       - "8080:80"
     environment:
-      PMA_HOST: db
+      PMA_HOST: app-mariadb
       MYSQL_ROOT_PASSWORD: admin01
     depends_on:
-      - mysql
+      - mariadb
 
   mongodb:
     image: mongo
@@ -32,9 +32,9 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: minmin
-      MONGO_INITDB_DATABASE: my_data
+      MONGO_INITDB_DATABASE: travelLaravel
     volumes:
-      - /source/mongo:/data/db
+      - /source/mongo:/data/mongo
 
   mongo-express:
     image: mongo-express
